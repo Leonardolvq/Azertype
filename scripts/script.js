@@ -10,95 +10,101 @@
  * @param {number} nbMotsProposes : le nombre de mots proposés à l'utilisateur
  */
 function afficherResultat(score, nbMotsProposes) {
-    // Récupération de la zone dans laquelle on va écrire le score
-    let spanScore = document.querySelector(".zoneScore span")
-    // Ecriture du texte
-    let affichageScore = `${score} / ${nbMotsProposes}` 
-    // On place le texte à l'intérieur du span. 
-    spanScore.innerText = affichageScore
-}
-
-function afficherProposition (tableau) {
-    let divAfficher = document.querySelector(".zoneProposition");
-    divAfficher.innerText = tableau;
+  // Récupération de la zone dans laquelle on va écrire le score
+  let spanScore = document.querySelector(".zoneScore span")
+  // Ecriture du texte
+  let affichageScore = `${score} / ${nbMotsProposes}` 
+  // On place le texte à l'intérieur du span. 
+  spanScore.innerText = affichageScore
 }
 
 /**
- * Cette fonction lance le jeu. 
- * Elle demande à l'utilisateur de choisir entre "mots" et "phrases" et lance la boucle de jeu correspondante
- */
+* Cette fonction affiche une proposition, que le joueur devra recopier, 
+* dans la zone "zoneProposition"
+* @param {string} proposition : la proposition à afficher
+*/
+function afficherProposition(proposition) {
+  let zoneProposition = document.querySelector(".zoneProposition")
+  zoneProposition.innerText = proposition
+}
+
+/**
+* Cette fonction construit et affiche l'email. 
+* @param {string} nom : le nom du joueur
+* @param {string} email : l'email de la personne avec qui il veut partager son score
+* @param {string} score : le score. 
+*/
+function afficherEmail(nom, email, scoreEmail) {
+  let mailto = `mailto:${email}?subject=Partage du score Azertype&body=Salut, je suis ${nom} et je vais de réaliser le score ${scoreEmail} sur le site d'Azertype !`
+  location.href = mailto
+}
+
+/**
+* Cette fonction lance le jeu. 
+* Elle demande à l'utilisateur de choisir entre "mots" et "phrases" et lance la boucle de jeu correspondante
+*/
 function lancerJeu() {
-    // Initialisations
-    let score = 0;
-    let i = 0;
-  
-    let listeProposition = listeMots; 
-    let optionsRadio = document.querySelectorAll(".optionSource input[type=radio]");
-  
-    let btnValidation = document.getElementById("btnValiderMot");
-    let zoneTexte = document.getElementById("inputEcriture");
-  
-    afficherProposition(listeProposition[i]); // Afficher le premier mot dès le début
-  
-    btnValidation.addEventListener("click", () => {
-      console.log(`${zoneTexte.value}`); // Affiche la valeur entrée par le user
-      console.log(listeProposition[i]);
-      
-      if (zoneTexte.value === listeProposition[i]) {
-        score++;
+  // Initialisations
+  initAddEventListenerPopup()
+  let score = 0
+  let i = 0
+  let listeProposition = listeMots
+
+  let btnValiderMot = document.getElementById("btnValiderMot")
+  let inputEcriture = document.getElementById("inputEcriture")
+
+  afficherProposition(listeProposition[i])
+
+  // Gestion de l'événement click sur le bouton "valider"
+  btnValiderMot.addEventListener("click", () => {
+      if (inputEcriture.value === listeProposition[i]) {
+          score++
       }
-  
-      i++;
-  
-      afficherResultat(score, i);
-      console.log(score);
-      zoneTexte.value = ""; // Vider le champ de saisie
+      i++
+      afficherResultat(score, i)
+      inputEcriture.value = ''
       if (listeProposition[i] === undefined) {
-        afficherProposition("Le jeu est terminé.");
-        btnValidation.disabled = true;
+          afficherProposition("Le jeu est fini")
+          btnValiderMot.disabled = true
       } else {
-        afficherProposition(listeProposition[i]);
+          afficherProposition(listeProposition[i])
       }
-    });
-  
-    zoneTexte.addEventListener("keypress", (event) => {
-      if (event.keyCode === 13) {
-        console.log(`${zoneTexte.value}`); // Affiche la valeur entrée par le user
-        console.log(listeProposition[i]);
-        
-        if (zoneTexte.value === listeProposition[i]) {
-          score++;
-        }
-  
-        i++;
-  
-        afficherResultat(score, i);
-        console.log(score); 
-        zoneTexte.value = ""; // Vider le champ de saisie
-        if (listeProposition[i] === undefined) {
-          afficherProposition("Le jeu est terminé.");
-          btnValidation.disabled = true;
-        } else {
-          afficherProposition(listeProposition[i]);
-        }
-      }
-    });
+  })
 
-    for (let i = 0; i < optionsRadio.length; i++) {
-      optionsRadio[i].addEventListener('change', () => {
-        if (optionsRadio[i].checked) {
-          console.log(optionsRadio[i].value)
-          let value = optionsRadio[i].value;
-          if (value === 'Mots') {
-            listeProposition = listeMots;
-            console.log(listeMots)
-          } else if (value === 'Phrases') {
-            listeProposition = listePhrases;
-            console.log(listePhrases)
+  // Gestion de l'événement change sur les boutons radios. 
+  let listeBtnRadio = document.querySelectorAll(".optionSource input")
+  for (let index = 0; index < listeBtnRadio.length; index++) {
+      listeBtnRadio[index].addEventListener("change", (event) => {
+          // Si c'est le premier élément qui a été modifié, alors nous voulons
+          // jouer avec la listeMots. 
+          if (event.target.value === "1") {
+              listeProposition = listeMots;
+          } else {
+              // Sinon nous voulons jouer avec la liste des phrases
+              listeProposition = listePhrases;
           }
-        }
+          // Et on modifie l'affichage en direct. 
+          afficherProposition(listeProposition[i])
       })
-    }
-
-    afficherResultat(score, i);
   }
+
+  let formulaire = document.querySelector('.popup form');
+  formulaire.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      let baliseNom = document.getElementById('nom');
+      let nom = baliseNom.value;
+
+      let baliseEmail = document.getElementById("email");
+      let email =  baliseEmail.value;
+      
+      let scoreEmail = `${score} / ${i}`;
+      console.log(nom, email);
+      
+      console.log("La page ne s'est pas actualisée");
+
+      afficherEmail(nom, email, scoreEmail)
+  })
+
+  afficherResultat(score, i)
+}
